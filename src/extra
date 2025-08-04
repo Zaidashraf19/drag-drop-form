@@ -1,0 +1,421 @@
+import React, { useState } from "react";
+import { BsTextarea } from "react-icons/bs";
+import { CiMail } from "react-icons/ci";
+import { FaPhoneAlt } from "react-icons/fa";
+import { HiCalendarDateRange } from "react-icons/hi2";
+import { MdFileUpload } from "react-icons/md";
+import {
+  RiCheckboxFill,
+  RiDropdownList,
+  RiRadioButtonFill,
+  RiToggleLine,
+} from "react-icons/ri";
+import { TbInputSpark } from "react-icons/tb";
+import { CgPassword } from "react-icons/cg";
+
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import FormGroup from "@mui/material/FormGroup";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Switch from "@mui/material/Switch";
+import Radio from "@mui/material/Radio";
+import RadioGroup from "@mui/material/RadioGroup";
+import FormControl from "@mui/material/FormControl";
+import FormLabel from "@mui/material/FormLabel";
+import { Checkbox } from "@mui/material";
+import { styled } from "@mui/material/styles";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import InputLabel from "@mui/material/InputLabel";
+import OutlinedInput from "@mui/material/OutlinedInput";
+import InputAdornment from "@mui/material/InputAdornment";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import IconButton from "@mui/material/IconButton";
+
+function AppTwo() {
+  const Bcomponents = [
+    { icon: <TbInputSpark size="2rem" />, type: "Input" },
+    { icon: <BsTextarea size="2rem" />, type: "TextArea" },
+    { icon: <RiDropdownList size="2rem" />, type: "DropDown" },
+    { icon: <RiToggleLine size="2rem" />, type: "Switcher" },
+    { icon: <RiCheckboxFill size="2rem" />, type: "CheckBox" },
+    { icon: <RiRadioButtonFill size="2rem" />, type: "RadioButton" },
+    { icon: <MdFileUpload size="2rem" />, type: "File" },
+    { icon: <HiCalendarDateRange size="2rem" />, type: "Date" },
+  ];
+
+  const Acomponents = [
+    { icon: <CgPassword size="2rem" />, type: "Password" },
+    { icon: <CiMail size="2rem" />, type: "Mail" },
+    { icon: <FaPhoneAlt size="2rem" />, type: "PhoneNumber" },
+  ];
+
+  const [open, setOpen] = useState(false);
+  const [label, setLabel] = useState("");
+  const [options, setOptions] = useState("");
+  const [form, setForm] = useState([]);
+  const [editDiv, setEditDiv] = useState(null);
+  const [activeField, setActiveField] = useState("");
+  const [formc, setFormC] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
+  const [rowI, setRowI] = useState();
+  const [colI, setCoI] = useState();
+
+  const VisuallyHiddenInput = styled("input")({
+    clip: "rect(0 0 0 0)",
+    clipPath: "inset(50%)",
+    height: 1,
+    overflow: "hidden",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    whiteSpace: "nowrap",
+    width: 1,
+  });
+  const handleClickShowPassword = () => setShowPassword((s) => !s);
+
+  // DROP IN CELL
+  const handleDropInCell = (e, rowIndex, colIndex) => {
+    e.preventDefault();
+    const type = e.dataTransfer.getData("fieldType");
+    setActiveField(type);
+    setLabel("");
+    setOptions("");
+    setEditDiv({ rowIndex, colIndex });
+    setOpen(true);
+
+    setRowI(rowIndex);
+    setCoI(colIndex);
+  };
+
+  // SUBMIT
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newFieldData = {
+      type: activeField,
+      label: label,
+      rownumber: rowI + 1,
+      ColumnNumber: colI + 1,
+    };
+
+    if (["RadioButton", "DropDown"].includes(activeField)) {
+      newFieldData.options = options
+        .split("\n")
+        .map((opt) => opt.trim())
+        .filter(Boolean);
+    }
+
+    if (editDiv) {
+      const { rowIndex, colIndex } = editDiv;
+      const updatedForm = [...form];
+      updatedForm[rowIndex][colIndex] = newFieldData;
+      setForm(updatedForm);
+    } else if (formc === 0) {
+      setForm([[newFieldData]]);
+      setFormC(1);
+    }
+
+    setOpen(false);
+    setEditDiv(null);
+  };
+
+  // ADD ROW
+  const addRow = () => {
+    const newRow = [null];
+    setForm([...form, newRow]);
+    setFormC(1);
+    console.log(form);
+  };
+
+  // ADD COL
+  const addColumn = (rowIndex) => {
+    const updatedForm = [...form];
+    updatedForm[rowIndex] = [...updatedForm[rowIndex], null];
+    setForm(updatedForm);
+  };
+
+  // EDIT INPUT
+  const editInput = (rowIndex, colIndex) => {
+    const item = form[rowIndex][colIndex];
+    setEditDiv({ rowIndex, colIndex });
+    setActiveField(item.type);
+    setLabel(item.label);
+    setOptions(item.options?.join("\n") || "");
+    setOpen(true);
+  };
+
+  // DELETE INPUT
+  const deleteInput = (rowIndex, colIndex) => {
+    const updatedForm = [...form];
+    updatedForm[rowIndex][colIndex] = null;
+    setForm(updatedForm);
+  };
+
+  // INPUT FIELDS
+  const renderField = (field, rowIndex, colIndex) => (
+    <div className="d-flex justify-content-center">
+      <div className="w-100 p-2">
+        {field?.type === "TextArea" ? (
+          <>
+            <label>{field?.label}</label>
+            <textarea className="form-control" />
+          </>
+        ) : field?.type === "RadioButton" ? (
+          <FormControl>
+            <FormLabel>{field?.label}</FormLabel>
+            <RadioGroup name={`radio-group-${rowIndex}-${colIndex}`}>
+              {field?.options?.map((opt, i) => (
+                <FormControlLabel
+                  key={i}
+                  value={opt}
+                  control={<Radio />}
+                  label={opt}
+                />
+              ))}
+            </RadioGroup>
+          </FormControl>
+        ) : field?.type === "DropDown" ? (
+          <>
+            <label>{field?.label}</label>
+            <select className="form-select">
+              {field?.options.map((opt, i) => (
+                <option key={i}>{opt}</option>
+              ))}
+            </select>
+          </>
+        ) : field?.type === "Switcher" ? (
+          <FormGroup>
+            <FormControlLabel control={<Switch />} label={field?.label} />
+          </FormGroup>
+        ) : field?.type === "CheckBox" ? (
+          <FormControlLabel control={<Checkbox />} label={field?.label} />
+        ) : field?.type === "File" ? (
+          <Button
+            variant="contained"
+            component="label"
+            startIcon={<CloudUploadIcon />}
+          >
+            {field?.label}
+            <VisuallyHiddenInput type="file" />
+          </Button>
+        ) : field?.type === "Date" ? (
+          <>
+            <label>{field?.label}</label>
+            <input type="date" className="form-control" />
+          </>
+        ) : field?.type === "Input" ? (
+          <TextField label={field?.label} variant="outlined" fullWidth />
+        ) : field?.type === "Password" ? (
+          <FormControl variant="outlined" fullWidth>
+            <InputLabel>{field?.label}</InputLabel>
+            <OutlinedInput
+              type={showPassword ? "text" : "password"}
+              endAdornment={
+                <InputAdornment position="end">
+                  <IconButton onClick={handleClickShowPassword} edge="end">
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              }
+              label={field?.label}
+            />
+          </FormControl>
+        ) : field?.type === "Mail" ? (
+          <>
+            <label>{field?.label}</label>
+            <input type="email" className="form-control" />
+          </>
+        ) : field?.type === "PhoneNumber" ? (
+          <>
+            <label>{field?.label}</label>
+            <input
+              type="tel"
+              className="form-control"
+              placeholder="0312-3456789"
+            />
+          </>
+        ) : null}
+      </div>
+      <div className="d-flex flex-column p-3">
+        <span
+          onClick={() => editInput(rowIndex, colIndex)}
+          style={{ cursor: "pointer" }}
+          className="text-info fs-4"
+        >
+          &#128393;
+        </span>
+        <span
+          onClick={() => deleteInput(rowIndex, colIndex)}
+          className="text-danger fs-4"
+          style={{ cursor: "pointer" }}
+        >
+          &times;
+        </span>
+      </div>
+    </div>
+  );
+
+  // DIALOG
+  const renderDialog = () => {
+    return (
+      <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogContent>
+          <form onSubmit={handleSubmit}>
+            <TextField
+              required
+              margin="dense"
+              label="Label"
+              fullWidth
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+            />
+            {["RadioButton", "DropDown"].includes(activeField) && (
+              <TextField
+                multiline
+                rows={4}
+                required
+                margin="dense"
+                label="Options (one per line)"
+                fullWidth
+                value={options}
+                onChange={(e) => setOptions(e.target.value)}
+              />
+            )}
+            <DialogActions>
+              <Button type="submit">
+                {editDiv != null ? "Create" : "Update"}
+              </Button>
+            </DialogActions>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  // DELETE ROW
+  const deleterow = (rowIndex) => {
+    const updatedForm = form.filter((_, index) => index !== rowIndex);
+    setForm(updatedForm);
+  };
+
+  return (
+    <div className="d-flex p-4 gap-5">
+      {/* SIDER */}
+      <div
+        style={{ width: "30rem", maxHeight: "300vh" }}
+        className="shadow-lg py-3"
+      >
+        {/* BASIC COMPONENTS */}
+        <div>
+          <p className="text-capitalize fw-bold fs-2 text-center">
+            basic components
+          </p>
+          <div className="d-flex gap-3 justify-content-center flex-wrap">
+            {Bcomponents.map((item, index) => (
+              <div
+                key={index}
+                draggable
+                onDragStart={(e) =>
+                  e.dataTransfer.setData("fieldType", item?.type)
+                }
+                className="border bg-body-tertiary fw-semibold p-3 rounded-3 text-capitalize text-center"
+                style={{ width: "8rem", cursor: "move" }}
+              >
+                <p>{item.icon}</p>
+                <p>{item.type}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* ADVANCED COMPONENTS */}
+        <div>
+          <p className="text-capitalize fw-bold fs-2 text-center mt-4">
+            advance components
+          </p>
+          <div className="d-flex gap-3 justify-content-center flex-wrap">
+            {Acomponents.map((item, index) => (
+              <div
+                key={index}
+                draggable
+                onDragStart={(e) =>
+                  e.dataTransfer.setData("fieldType", item?.type)
+                }
+                className="border bg-body-tertiary fw-semibold p-3 rounded-3 text-capitalize text-center"
+                style={{ width: "8rem", cursor: "move" }}
+              >
+                <p>{item.icon}</p>
+                <p>{item.type}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* FORM */}
+      <div className="w-100 p-4 shadow-lg text-capitalize">
+        <p className="text-capitalize fw-bold fs-2 text-center">Form Area</p>
+        {formc !== 0 ? (
+          <div className="d-flex gap-2 mb-3">
+            <button className="btn btn-outline-primary" onClick={addRow}>
+              Add Row
+            </button>
+          </div>
+        ) : (
+          ""
+        )}
+        <div className="bg-light p-3 rounded">
+          {form?.length === 0 ? (
+            <div className="d-flex justify-content-center">
+              <button className="btn btn-primary" onClick={addRow}>
+                Create Form
+              </button>
+            </div>
+          ) : (
+            form?.map((rowData, rowIndex) => (
+              <>
+                <div className="d-flex justify-content-end">
+                  <button
+                    onClick={() => addColumn(rowIndex)}
+                    disabled={form[rowIndex]?.length >= 3}
+                    className="btn btn-outline-secondary"
+                  >
+                    Add Col
+                  </button>
+                  <button
+                    onClick={() => deleterow(rowIndex)}
+                    className="btn btn-outline-danger"
+                  >
+                    Delete Row
+                  </button>
+                </div>
+                <div className="d-flex gap-2 mb-2" key={rowIndex}>
+                  {rowData?.map((cell, colIndex) => (
+                    <div
+                      key={colIndex}
+                      className="bg-white border rounded p-2 flex-fill"
+                      style={{ minHeight: "100px" }}
+                      onDrop={(e) => handleDropInCell(e, rowIndex, colIndex)}
+                      onDragOver={(e) => e.preventDefault()}
+                    >
+                      {cell ? (
+                        renderField(cell, rowIndex, colIndex)
+                      ) : (
+                        <span className="text-muted">Drop here</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
+            ))
+          )}
+        </div>
+      </div>
+
+      {renderDialog()}
+    </div>
+  );
+}
+
+export default AppTwo;
